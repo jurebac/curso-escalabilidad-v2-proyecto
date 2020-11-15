@@ -1,1 +1,1 @@
-# cursosre-proyecto
+# curso-escalabilidad-v2-proyecto
