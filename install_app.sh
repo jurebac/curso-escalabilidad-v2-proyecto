@@ -10,7 +10,10 @@ const express = require("express");
 const redis = require("redis");
 
 const app = express();
-//const redis_client = redis.createClient();
+//let redis_url = process.env.REDIS_URL;
+//const redis_client = redis.createClient(redis_url);
+
+let count = 0;
 
 //Healthcheck para ELB
 app.get('/', function(req, res) {
@@ -25,10 +28,16 @@ app.get('/turno/:id', function (req, res) {
 
   /*redis_client.incr('counter');
   redis_client.get('counter', function(err, reply) {
-    objResponse.turno = reply;
+    if(err) {                                                 
+      reply.status(500).json({error: err});                             
+      return;  
+    }
+    count = reply;
+    
   });*/
 
   objResponse.id += req.params.id;
+  objResponse.turno = count;
   res.json(objResponse);
 });
 
