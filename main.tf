@@ -13,16 +13,16 @@ provider "aws" {
 #--------------------------------------------------------------------------------------------------
 
 variable "loadbalancer_port" {
-  description = "External port opened to access the application"
+  description = "Puerto del balanceador abierto"
   type = number
-  default = 80
+  default = 7017
 }
 
 
 variable "server_app_port" {
-  description = "The port the server will use for the app"
+  description = "Puerto de la aplicación publicada en los servidores"
   type        = number
-  default     = 8080
+  default     = 3000
 }
 
 
@@ -66,11 +66,9 @@ resource "aws_launch_configuration" "lc1" {
   image_id = "ami-0bd64587122fabdd5"
   instance_type = "t2.micro"
   security_groups = [aws_security_group.asg_sg1.id]
-  user_data = <<-EOF
-              #!/bin/bash
-              echo "Hello Mr. SRE, from AWS!" > index.html
-              nohup busybox httpd -f -p ${var.server_app_port} &
-              EOF
+  
+  #Script con comandos para instalar aplicación
+  user_data = file("install_app.sh")
 
   # Required when using a launch configuration with an auto scaling group.
   # https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
@@ -96,6 +94,13 @@ resource "aws_security_group" "asg_sg1" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Habilito acceso hacia el exterior de las instancias, para la instalación de paquetes con npm
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 
@@ -134,7 +139,7 @@ resource "aws_lb_listener_rule" "lb_lr1" {
 
   condition {
     path_pattern {
-      values = ["*"]
+      values = ["/turno/*"]
     }
   }
   action {
