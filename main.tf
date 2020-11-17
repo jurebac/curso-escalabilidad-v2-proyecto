@@ -42,6 +42,38 @@ data "aws_subnet_ids" "default" {
 
 #--------------------------------------------------------------------------------------------------
 #
+# DB Redis instance
+#--------------------------------------------------------------------------------------------------
+resource "aws_instance" "redis-db" {
+  #Bitnami Redis AMI
+  ami = "ami-09fbf6ab558b106ce"
+  instance_type = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.sg_redis.id]
+  tags = {
+    Name = "redis-db"
+  }
+}
+
+resource "aws_security_group" "sg_redis" {
+  name = "sg_redis"
+  ingress {
+    from_port = 6379
+    to_port = 6379
+    protocol = "tcp"
+    cidr_blocks = [ "0.0.0.0/0" ]
+   }
+}
+
+
+output "redis_ip" {
+  value       = aws_instance.redis-db.private_ip
+  description = "The domain name of the redis instance"
+}
+
+
+
+#--------------------------------------------------------------------------------------------------
+#
 # Auto Scaling Group (EC2 instances cluster)
 #--------------------------------------------------------------------------------------------------
 
