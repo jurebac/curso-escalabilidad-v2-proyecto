@@ -40,37 +40,6 @@ data "aws_subnet_ids" "default" {
 }
 
 
-#--------------------------------------------------------------------------------------------------
-#
-# DB Redis instance
-#--------------------------------------------------------------------------------------------------
-resource "aws_instance" "redis-db" {
-  #Bitnami Redis AMI
-  ami = "ami-09fbf6ab558b106ce"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.sg_redis.id]
-  tags = {
-    Name = "redis-db"
-  }
-}
-
-resource "aws_security_group" "sg_redis" {
-  name = "sg_redis"
-  ingress {
-    from_port = 6379
-    to_port = 6379
-    protocol = "tcp"
-    cidr_blocks = [ "0.0.0.0/0" ]
-   }
-}
-
-
-output "redis_ip" {
-  value       = aws_instance.redis-db.private_ip
-  description = "The domain name of the redis instance"
-}
-
-
 
 #--------------------------------------------------------------------------------------------------
 #
@@ -142,7 +111,7 @@ resource "aws_security_group" "asg_sg1" {
 #--------------------------------------------------------------------------
 
 resource "aws_lb" "lb1" {
-  name               = "sre-app-lb"
+  name               = "turnomatic-distribuido"
   load_balancer_type = "application"
   subnets            = data.aws_subnet_ids.default.ids
   security_groups    = [aws_security_group.lb_sg1.id]

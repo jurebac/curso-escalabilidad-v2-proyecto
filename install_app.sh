@@ -1,17 +1,27 @@
 #! /bin/bash
-mkdir app
-cd app
-npm init --yes
-npm install express --save
-npm install redis --save
+mkdir /opt/turnomatic-distribuido
+cd /opt/turnomatic-distribuido
+
+cat <<EOT >> package.json
+{
+  "name": "turnomatic-distribuido",
+  "version": "0.0.1",
+  "description": "A distributed turnomatic",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "redis": "^3.0.2"
+  }
+}
+EOT
 
 cat <<EOT >> index.js
 const express = require("express");
-const redis = require("redis");
 
 const app = express();
-//let redis_url = process.env.REDIS_URL;
-//const redis_client = redis.createClient(redis_url);
 
 let count = 0;
 
@@ -26,16 +36,6 @@ app.get('/turno/:id', function (req, res) {
     turno: 0
   };
 
-  /*redis_client.incr('counter');
-  redis_client.get('counter', function(err, reply) {
-    if(err) {                                                 
-      reply.status(500).json({error: err});                             
-      return;  
-    }
-    count = reply;
-    
-  });*/
-
   objResponse.id += req.params.id;
   objResponse.turno = ++count;
   res.json(objResponse);
@@ -46,5 +46,6 @@ app.listen(3000, () => {
 });
 EOT
 
-node index.js
+npm install
+npm start
 
