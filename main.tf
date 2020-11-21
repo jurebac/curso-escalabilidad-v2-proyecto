@@ -62,8 +62,8 @@ resource "aws_autoscaling_group" "asg1" {
 }
 
 resource "aws_launch_configuration" "lc1" {
-  #Imagen pinchito-loadtest-2020-11-08
-  image_id = "ami-0bd64587122fabdd5"
+  #Imagen pinchito-loadtest-2020-11-20
+  image_id = "ami-0f85dffa85166b3ff"
   instance_type = "t2.micro"
   security_groups = [aws_security_group.asg_sg1.id]
   
