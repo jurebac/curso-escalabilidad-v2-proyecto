@@ -40,7 +40,6 @@ data "aws_subnet_ids" "default" {
 }
 
 
-
 #--------------------------------------------------------------------------------------------------
 #
 # Auto Scaling Group (EC2 instances cluster)

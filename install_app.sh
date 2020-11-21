@@ -48,4 +48,3 @@ EOT
 
 npm install
 npm start
-
