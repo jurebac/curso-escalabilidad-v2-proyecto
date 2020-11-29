@@ -25,7 +25,7 @@ const cluster = require('cluster');
 const numCPUs = require('os').cpus().length;
 
 const hostname = '0.0.0.0'
-const port = 3000
+const port = 7017
 const redisHost = 'service.pinchito.es'
 const redisPort = 7079
 let client = null

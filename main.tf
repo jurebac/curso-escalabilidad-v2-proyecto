@@ -7,6 +7,7 @@ provider "aws" {
   region = "eu-west-3"
 }
 
+
 #--------------------------------------------------------------------------------------------------
 #
 # Variables
@@ -22,7 +23,7 @@ variable "loadbalancer_port" {
 variable "server_app_port" {
   description = "Puerto de la aplicación publicada en los servidores"
   type        = number
-  default     = 3000
+  default     = 7017
 }
 
 
@@ -39,6 +40,61 @@ data "aws_subnet_ids" "default" {
   vpc_id = data.aws_vpc.default.id
 }
 
+
+#--------------------------------------------------------------------------------------------------
+#
+# Security group
+#--------------------------------------------------------------------------------------------------
+
+resource "aws_security_group" "asg_sg1" {
+  name = "asg_sg1"
+
+  ingress {
+    from_port   = var.server_app_port
+    to_port     = var.server_app_port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  #Permito acceso SSH a las instancias EC2 del Autoscaling group
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Habilito acceso hacia el exterior de las instancias, para la instalación de paquetes con npm
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+# Opción con un sólo nodo
+#--------------------------------------------
+
+#--------------------------------------------------------------------------------------------------
+#
+# Ec2 instance para pruebas de solución en un sólo server
+#--------------------------------------------------------------------------------------------------
+
+
+resource "aws_instance" "single_node" {
+    #Imagen pinchito-loadtest-2020-11-20
+    ami = "ami-0f85dffa85166b3ff"
+    instance_type = "t2.micro"
+    #instance_type = "t2.xlarge"
+    vpc_security_group_ids = [aws_security_group.asg_sg1.id]
+#    count = 3
+}
+
+
+# Opción en cluster
+#-----------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
 #
@@ -65,6 +121,7 @@ resource "aws_launch_configuration" "lc1" {
   #Imagen pinchito-loadtest-2020-11-20
   image_id = "ami-0f85dffa85166b3ff"
   instance_type = "t2.micro"
+  #instance_type = "t2.xlarge"
   security_groups = [aws_security_group.asg_sg1.id]
   
   #Script con comandos para instalar aplicación
@@ -74,32 +131,6 @@ resource "aws_launch_configuration" "lc1" {
   # https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
   lifecycle {
     create_before_destroy = true
-  }
-}
-
-
-resource "aws_security_group" "asg_sg1" {
-  name = "asg_sg1"
-  ingress {
-    from_port   = var.server_app_port
-    to_port     = var.server_app_port
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  #Permito acceso SSH a las instancias EC2 del Autoscaling group
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Habilito acceso hacia el exterior de las instancias, para la instalación de paquetes con npm
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
@@ -188,8 +219,12 @@ resource "aws_security_group" "lb_sg1" {
 
 #--------------------------------------------------------------------------
 #
-# Output the load balancer DNS name
+# Output the load balancer DNS name and single node IP
 #--------------------------------------------------------------------------
+
+output "single_node_ip" {
+  value = aws_instance.single_node.public_ip
+}
 
 output "alb_dns_name" {
   value       = aws_lb.lb1.dns_name
