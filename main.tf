@@ -49,6 +49,7 @@ data "aws_subnet_ids" "default" {
 resource "aws_security_group" "asg_sg1" {
   name = "asg_sg1"
 
+  #Acceso al puerto de la aplicación
   ingress {
     from_port   = var.server_app_port
     to_port     = var.server_app_port
@@ -56,7 +57,7 @@ resource "aws_security_group" "asg_sg1" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  #Permito acceso SSH a las instancias EC2 del Autoscaling group
+  #Permito acceso SSH a las instancias EC2
   ingress {
     from_port   = 22
     to_port     = 22
@@ -74,7 +75,7 @@ resource "aws_security_group" "asg_sg1" {
 }
 
 
-# Opción con un sólo nodo
+# Opción con un sólo nodo, para realizar pruebas
 #--------------------------------------------
 
 #--------------------------------------------------------------------------------------------------
@@ -86,10 +87,9 @@ resource "aws_security_group" "asg_sg1" {
 resource "aws_instance" "single_node" {
     #Imagen pinchito-loadtest-2020-11-20
     ami = "ami-0f85dffa85166b3ff"
-    instance_type = "t2.micro"
-    #instance_type = "t2.xlarge"
+    #instance_type = "t2.micro"
+    instance_type = "t2.xlarge"
     vpc_security_group_ids = [aws_security_group.asg_sg1.id]
-#    count = 3
 }
 
 
@@ -120,12 +120,13 @@ resource "aws_autoscaling_group" "asg1" {
 resource "aws_launch_configuration" "lc1" {
   #Imagen pinchito-loadtest-2020-11-20
   image_id = "ami-0f85dffa85166b3ff"
-  instance_type = "t2.micro"
-  #instance_type = "t2.xlarge"
+  #instance_type = "t2.micro"
+  instance_type = "t2.xlarge"
   security_groups = [aws_security_group.asg_sg1.id]
   
   #Script con comandos para instalar aplicación
   user_data = file("install_app.sh")
+  #user_data = file("install_app_with_honeycomb.sh")
 
   # Required when using a launch configuration with an auto scaling group.
   # https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
